@@ -36,7 +36,7 @@ public class profileService {
     private final JwtUtil jwtUtil;
     private final UsersRepo userRepo;
     private final OTP_Repo otpRepo;
-    private final JavaMailSender mailSender;
+    private final BrevoEmailService mailSender;
     private final docRepo DocRepo;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -76,7 +76,7 @@ public class profileService {
         mailMessage.setTo(toEmail);
         mailMessage.setSubject(subject);
         mailMessage.setText(message);
-        mailSender.send(mailMessage);
+        mailSender.sendEmail(toEmail, subject, message);
     }
 
 
