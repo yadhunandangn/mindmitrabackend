@@ -53,15 +53,27 @@ public class JwtFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    // Inside JwtFilter.java
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        // Also skip the filter for any OPTIONS request
-        if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
+        String path = request.getServletPath();
+        String method = request.getMethod();
+
+        // Add this logging
+        System.out.println("shouldNotFilter called for: " + method + " " + path);
+
+        if (method.equalsIgnoreCase("OPTIONS")) {
+            System.out.println("Skipping filter for OPTIONS request.");
             return true;
         }
-        String path = request.getServletPath();
-        return path.startsWith("/auth/login") ||
-                path.startsWith("/auth/register") ||
-                path.startsWith("/public");
+
+        if (path.startsWith("/auth/login") || path.startsWith("/auth/register") || path.startsWith("/public")) {
+            System.out.println("Skipping filter for public path.");
+            return true;
+        }
+
+        System.out.println("NOT skipping filter.");
+        return false;
     }
 }
