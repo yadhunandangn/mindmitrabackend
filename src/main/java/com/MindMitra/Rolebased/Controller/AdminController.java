@@ -21,7 +21,11 @@ import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 @RequestMapping("/admin")
 @RequiredArgsConstructor
 @CrossOrigin(
-        origins = "http://localhost:5173",          // frontend URL
+        origins = {
+                "https://mindmitra-platform.vercel.app",
+                "http://localhost:3000"
+        },
+// frontend URL
         allowedHeaders = {"Authorization", "Content-Type"}, // allow JWT header
         allowCredentials = "true")
 public class AdminController {

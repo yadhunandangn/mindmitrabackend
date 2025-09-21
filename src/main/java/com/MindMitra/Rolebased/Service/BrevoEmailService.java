@@ -10,7 +10,7 @@ import java.util.*;
 @Service
 public class BrevoEmailService {
 
-    @Value("${BREVO_API_KEY}")
+    @Value("${brevo.api.key}")
     private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
