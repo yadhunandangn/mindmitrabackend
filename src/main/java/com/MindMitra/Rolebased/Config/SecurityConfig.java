@@ -31,47 +31,41 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http
+                .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        // Preflight requests must be first
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // Public endpoints
                         .requestMatchers("/auth/**", "/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/public/blogs", "/public/doctors/**").permitAll()
 
-                        // Journals endpoints: any authenticated user
+                        // Journals & Appointments (any authenticated user)
                         .requestMatchers("/api/auth/journals/**", "/api/auth/appointments", "/api/auth/appointments/**").authenticated()
-
                         .requestMatchers("/api/hcp/appointments", "/api/hcp/appointments/**").authenticated()
                         .requestMatchers("/api/hcp/patients", "/api/hcp/patients/**").authenticated()
 
-
+                        // Admin endpoints
                         .requestMatchers("/api/admin/appointments","/api/admin/appointments/**").authenticated()
-
                         .requestMatchers("/api/admin/users").authenticated()
-
-                        // Mood tracker endpoints: PATIENT, DOCTOR, ADMIN
-                        .requestMatchers("/api/auth/mood-tracker/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
-
-                        // Admin-only endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // Doctor-only endpoints
+                        // Mood tracker endpoints
+                        .requestMatchers("/api/auth/mood-tracker/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
+
+                        // Doctor & Patient endpoints
                         .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
-
-
-
-                        // Patient-only endpoints
                         .requestMatchers("/api/patient/**").hasRole("PATIENT")
 
-                        // Chat endpoints: any authenticated user
+                        // Chat endpoints
                         .requestMatchers("/api/chat/**").authenticated()
 
-                        // Any other request must be authenticated
+                        // Catch-all
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -79,22 +73,23 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of(
-        "http://localhost:5173",
-        "https://mindmitra-platform.vercel.app"
-    ));
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-    configuration.setExposedHeaders(List.of("Authorization"));
-    configuration.setAllowCredentials(true);
+        CorsConfiguration configuration = new CorsConfiguration();
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
+        // Allowed origins for dev and prod
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://mindmitra-platform.vercel.app"
+        ));
+
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*")); // allow all headers (preflight safe)
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
-
-
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
