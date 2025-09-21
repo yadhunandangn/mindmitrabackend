@@ -21,7 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "")
+@CrossOrigin(origins = "https://mindmitra-platform.vercel.app")
 @RequiredArgsConstructor
 public class AuthController {
 
